@@ -1,0 +1,62 @@
+version: "3"
+services:
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch-oss:6.3.1
+    environment:
+      - "ES_JAVA_OPTS=-Xms2g -Xmx2g"
+      - "cluster.name=startups-poleemploi"
+      - "bootstrap.memory_lock=true"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    restart: "unless-stopped"
+    volumes:
+      - ./elasticsearch/data:/usr/share/elasticsearch/data
+    ports:
+      - 127.0.0.1:9200:9200
+
+  # Trefle
+  logstash-trefle:
+    image: docker.elastic.co/logstash/logstash-oss:6.3.1
+    volumes:
+      - ./logstash/trefle.conf:/usr/share/logstash/pipeline/logstash.conf
+    restart: "unless-stopped"
+    ports:
+      - 5044:5044
+    depends_on:
+      - elasticsearch
+
+  kibana-trefle:
+    image: docker.elastic.co/kibana/kibana-oss:6.3.1
+    environment:
+      - "ELASTICSEARCH_URL=http://elasticsearch:9200"
+      - "KIBANA_INDEX=.kibana-trefle"
+    restart: "unless-stopped"
+    ports:
+      - 5601:5601
+    depends_on:
+      - elasticsearch
+
+  # Add your own configuration from the template below
+
+  #logstash-MASTARTUPAMOI:
+    #image: docker.elastic.co/logstash/logstash-oss:6.3.1
+    #volumes:
+      #- ./logstash/MASTARUPAMOI.conf:/usr/share/logstash/pipeline/logstash.conf
+    #restart: "unless-stopped"
+    #ports:
+      #- 50XX:5044 # Increment this to have a unique port for MASTARTUPAMOI
+
+  #kibana-MASTARTUPAMOI:
+    #image: docker.elastic.co/kibana/kibana-oss:6.3.1
+    #environment:
+      #- "ELASTICSEARCH_URL=http://elasticsearch:9200"
+      #- "KIBANA_INDEX=.kibana-MASTARTUPAMOI"
+    #restart: "unless-stopped"
+    #ports:
+      #- 56XX:5601
+    #depends_on:
+      #- elasticsearch
+
